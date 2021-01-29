@@ -1,5 +1,5 @@
 # MerryUp_RE2RNN
-combine RE2RNN with Merry_up
+combine RE2RNN with Merryup method and train together
 ## data processing
   1st get tokens and tags  
   2nd get all_tokens and all_tags  
