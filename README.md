@@ -11,3 +11,4 @@ combine RE2RNN with Merryup method and train together
 use bilstm and glove emeds  
 hidden2tag layer  
 out with softmax  
+remember to use forward and predict
