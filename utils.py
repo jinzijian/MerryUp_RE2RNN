@@ -113,3 +113,16 @@ def load_embedding(path, idx2word):
         else:
             values.append(np.random.rand(100))
     return np.asarray(values)
+
+
+def flatten(input, length):
+    """
+    :param input: B x L x ?
+    :param length: B
+    :return:
+    """
+
+    B, L = input.size()[0], input.size()[1]
+    # fraction = 1
+    flattened = torch.cat([input[i,:length[i]] for i in range(B)], dim=0)
+    return flattened
