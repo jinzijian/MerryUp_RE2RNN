@@ -7,3 +7,7 @@ combine RE2RNN with Merryup method and train together
   4th add padding  
   5th create dataset  
   6th create dataloader  
+## model
+use bilstm and glove emeds  
+hidden2tag layer  
+out with softmax  
