@@ -3,13 +3,17 @@ from torch.utils.data import DataLoader
 import data
 import argparse
 import torch
+from torch import optim
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    # train
     parser.add_argument('--batch_size', default=16, type=int, help='should be int')
-    parser.add_argument('--hidden_dim', default=100, type=int, help='should be int')
-    parser.add_argument('--embedding_dim', default=100, type=int, help='should be int')
     parser.add_argument('--epochs', default=30, type=int, help='should be int')
+    # model
+    parser.add_argument('--embedding_dim', default=100, type=int, help='should be int')
+    parser.add_argument('--hidden_dim', default=200, type=int, help='should be int')
 
     args = parser.parse_args()
     pass
@@ -21,6 +25,8 @@ if __name__ == '__main__':
     else:
         print('Using cpu')
 
+    # embedding path
+    emb_path = '/p300/TensorFSARNN/data/emb/glove.6B/glove.6B.100d.txt'
     #  load data
     dir = '/p300/MerryUp_RE2RNN/dataset/ATIS/'
     train_tokens, train_tags, train_seqlen = data.load_data_ATIS(dir + 'train.json')
@@ -43,7 +49,5 @@ if __name__ == '__main__':
     # dataloader
     train_data = DataLoader(train_dataset, batch_size=args.batch_size)
     test_data = DataLoader(test_dataset, batch_size=args.batch_size)
-
-
 
 
