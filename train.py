@@ -27,12 +27,12 @@ class trainer():
             avg_loss = 0
             for idx, batch in enumerate(self.train_dataloader):
                 self.model.zero_grad()
-                input = batch['input']
-                label = batch['label']
+                input = batch['input']  # B * L
+                label = batch['label']  # B
                 seqlen = batch['length']
                 # 要把list of tensor 转化为tensor
                 input = torch.vstack(input).transpose(0, 1)  # B * L tensor
-                label = torch.vstack(label).transpose(0, 1)  # B * L tensor
+                label = torch.vstack(label)  # B  tensor
                 if self.use_gpu:
                     input = input.cuda()
                     label = label.cuda()

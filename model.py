@@ -37,7 +37,9 @@ class baseModel(nn.Module):
         pack_padded_seq_input = pack_padded_sequence(embeds, lengths, batch_first=True, enforce_sorted=False)
         lstm_out, (hn, cn) = self.lstm(pack_padded_seq_input)  # B * L * H
         output_padded, output_lengths = pad_packed_sequence(lstm_out, batch_first=True)
-        lstm_out = self.hidden2tags(output_padded)  # B * C
-        softmax_out = F.softmax(lstm_out, dim=2)
-        pred_label = torch.argmax(softmax_out, dim=2)
+        lstm_out = self.hidden2tags(output_padded)  # B * L * C
+        lstm_out = lstm_out[:, -1, :]
+        lstm_out.squeeze(1)
+        softmax_out = F.softmax(lstm_out[:, -1, :], dim=1)
+        pred_label = torch.argmax(softmax_out, dim=1)
         return pred_label  # B * L
