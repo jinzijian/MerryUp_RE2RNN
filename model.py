@@ -24,12 +24,14 @@ class baseModel(nn.Module):
         emb_vectors = load_embedding(self.emb_path, self.idx2word)
         self.embeds = nn.Embedding.from_pretrained(torch.from_numpy(emb_vectors).float(), freeze=True)
 
-    def forward(self, sentence, length):
+    def forward(self, sentence, lengths):
         embeds = self.embeds(sentence)  # B * L * D
-        pack_padded_seq_input = pack_padded_sequence(embeds, length, batch_first=True, enforce_sorted=False)
+        pack_padded_seq_input = pack_padded_sequence(embeds, lengths, batch_first=True, enforce_sorted=False)
         lstm_out, (hn, cn) = self.lstm(pack_padded_seq_input)  # B * L * H
         output_padded, output_lengths = pad_packed_sequence(lstm_out, batch_first=True)
-        lstm_out = self.hidden2tags(output_padded)  # B * L * C
+        lstm_out = self.hidden2tags(output_padded)  # B * L * H
+        lstm_out = lstm_out[:, -1, :]
+        lstm_out = lstm_out.squeeze(1)
         return lstm_out
 
     def predict(self, sentence, lengths):
@@ -39,7 +41,7 @@ class baseModel(nn.Module):
         output_padded, output_lengths = pad_packed_sequence(lstm_out, batch_first=True)
         lstm_out = self.hidden2tags(output_padded)  # B * L * C
         lstm_out = lstm_out[:, -1, :]
-        lstm_out.squeeze(1)
-        softmax_out = F.softmax(lstm_out[:, -1, :], dim=1)
+        lstm_out = lstm_out.squeeze(1)
+        softmax_out = F.softmax(lstm_out, dim=1)
         pred_label = torch.argmax(softmax_out, dim=1)
-        return pred_label  # B * L
+        return pred_label  # B

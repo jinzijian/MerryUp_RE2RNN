@@ -3,7 +3,7 @@ from torch import nn
 import torch
 import data
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-import utils
+import eval
 
 
 class trainer():
@@ -25,6 +25,7 @@ class trainer():
     def train(self):
         for i in range(self.epochs):
             avg_loss = 0
+            self.model.train()
             for idx, batch in enumerate(self.train_dataloader):
                 self.model.zero_grad()
                 input = batch['input']  # B * L
@@ -32,15 +33,15 @@ class trainer():
                 seqlen = batch['length']
                 # 要把list of tensor 转化为tensor
                 input = torch.vstack(input).transpose(0, 1)  # B * L tensor
-                label = torch.vstack(label)  # B  tensor
+                # label = torch.vstack(label)  # B  tensor
                 if self.use_gpu:
                     input = input.cuda()
                     label = label.cuda()
-                output = self.model.forward(input, seqlen)  # B * L * C
+                output = self.model.forward(input, seqlen)  # B  * C
                 loss_fn = nn.CrossEntropyLoss()
                 # cross entropy needs flatten
-                output = utils.flatten(output, seqlen)
-                label = utils.flatten(label, seqlen)
+                #output = utils.flatten(output, seqlen)
+                #label = utils.flatten(label, seqlen)
                 loss = loss_fn(output, label)
                 loss.backward()
                 self.optimizer.step()
@@ -50,4 +51,27 @@ class trainer():
             print("loss is %f" % avg_loss)
 
             #  evaluate train result
-
+            self.model.eval()
+            all_pred_label = []
+            all_true_label = []
+            with torch.no_grad():
+                for idx, batch in enumerate(self.train_dataloader):
+                    input = batch['input']
+                    label = batch['label']
+                    seqlen = batch['length']
+                    # 要把list of tensor 转化为tensor
+                    input = torch.vstack(input).transpose(0, 1)  # B * L tensor
+                    #label = torch.vstack(label)
+                    if self.use_gpu:
+                        input = input.cuda()
+                        label = label.cuda()
+                    output = self.model.predict(input, seqlen)  # B * L
+                    # 为什么需要flatten
+                    # label = utils.flatten(label, seqlen)
+                    # output = utils.flatten(output, seqlen)
+                    all_true_label.append(label)
+                    all_pred_label.append(output)
+            all_pred_label = torch.hstack(all_pred_label)
+            all_true_label = torch.hstack(all_true_label)
+            acc = eval.evaluate(all_pred=all_pred_label, all_label=all_true_label)
+            print('ACC: {}'.format(acc))

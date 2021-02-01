@@ -4,7 +4,8 @@ import data
 import argparse
 import torch
 from torch import optim
-
+from model import baseModel
+from train import trainer
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -14,6 +15,7 @@ if __name__ == '__main__':
     # model
     parser.add_argument('--embedding_dim', default=100, type=int, help='should be int')
     parser.add_argument('--hidden_dim', default=200, type=int, help='should be int')
+    parser.add_argument('--mode', default='base', type=str, help='should be str')
 
     args = parser.parse_args()
     pass
@@ -37,6 +39,8 @@ if __name__ == '__main__':
     max = data.get_maxlen(all_tokens)
     # get dict
     word2idx, idx2word, tag2idx, idx2tag = data.create_dict(all_tokens, all_tags)
+    vocab_size = len(word2idx) # vocab_size = 942
+    tag_size = len(tag2idx)  # C = 27
     # add padding
     train_tokens = data.add_padding(train_tokens, max)
     test_tokens = data.add_padding(test_tokens, max)
@@ -50,4 +54,15 @@ if __name__ == '__main__':
     train_data = DataLoader(train_dataset, batch_size=args.batch_size)
     test_data = DataLoader(test_dataset, batch_size=args.batch_size)
 
+    # model
+    baseModel = baseModel(vocab_size=vocab_size, embedding_dim=args.embedding_dim, hidden_dim=args.hidden_dim, tag2idx=tag2idx,
+                          batch_size=args.batch_size, use_gpu=use_gpu, idx2word=idx2word, emb_path=emb_path)
+    optimizer = optim.SGD(baseModel.parameters(), lr=0.001, weight_decay=1e-4)
 
+    # trainer
+    if args.mode == 'base':
+        myTrainer = trainer(model=baseModel, train_dataloader=train_data, test_dataloader=test_data, optimizer=optimizer,
+                            epochs=args.epochs, word2idx=word2idx, tag2idx=tag2idx, idx2word=idx2word, idx2tag=idx2tag, use_gpu=use_gpu)
+    else:
+        pass
+    myTrainer.train()
