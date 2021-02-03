@@ -10,8 +10,8 @@ from train import trainer
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # train
-    parser.add_argument('--batch_size', default=16, type=int, help='should be int')
-    parser.add_argument('--epochs', default=30, type=int, help='should be int')
+    parser.add_argument('--batch_size', default=128, type=int, help='should be int')
+    parser.add_argument('--epochs', default=150, type=int, help='should be int')
     # model
     parser.add_argument('--embedding_dim', default=100, type=int, help='should be int')
     parser.add_argument('--hidden_dim', default=200, type=int, help='should be int')
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     # model
     baseModel = baseModel(vocab_size=vocab_size, embedding_dim=args.embedding_dim, hidden_dim=args.hidden_dim, tag2idx=tag2idx,
                           batch_size=args.batch_size, use_gpu=use_gpu, idx2word=idx2word, emb_path=emb_path)
-    optimizer = optim.SGD(baseModel.parameters(), lr=0.001, weight_decay=1e-4)
+    optimizer = optim.Adam(baseModel.parameters(), lr=0.01)
 
     # trainer
     if args.mode == 'base':
@@ -65,4 +65,6 @@ if __name__ == '__main__':
                             epochs=args.epochs, word2idx=word2idx, tag2idx=tag2idx, idx2word=idx2word, idx2tag=idx2tag, use_gpu=use_gpu)
     else:
         pass
+    print(len(idx2tag))
+    print(idx2tag[1])
     myTrainer.train()

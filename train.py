@@ -75,3 +75,33 @@ class trainer():
             all_true_label = torch.hstack(all_true_label)
             acc = eval.evaluate(all_pred=all_pred_label, all_label=all_true_label)
             print('ACC: {}'.format(acc))
+            print(all_pred_label[:5])
+            print(all_true_label[:5])
+
+            #  evaluate test result
+            self.model.eval()
+            all_pred_label = []
+            all_true_label = []
+            with torch.no_grad():
+                for idx, batch in enumerate(self.test_dataloader):
+                    input = batch['input']
+                    label = batch['label']
+                    seqlen = batch['length']
+                    # 要把list of tensor 转化为tensor
+                    input = torch.vstack(input).transpose(0, 1)  # B * L tensor
+                    # label = torch.vstack(label)
+                    if self.use_gpu:
+                        input = input.cuda()
+                        label = label.cuda()
+                    output = self.model.predict(input, seqlen)  # B * L
+                    # 为什么需要flatten
+                    # label = utils.flatten(label, seqlen)
+                    # output = utils.flatten(output, seqlen)
+                    all_true_label.append(label)
+                    all_pred_label.append(output)
+            all_pred_label = torch.hstack(all_pred_label)
+            all_true_label = torch.hstack(all_true_label)
+            acc = eval.evaluate(all_pred=all_pred_label, all_label=all_true_label)
+            print('ACC: {}'.format(acc))
+            print(all_pred_label[:5])
+            print(all_true_label[:5])
