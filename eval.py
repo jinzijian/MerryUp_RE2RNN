@@ -8,4 +8,9 @@ def evaluate(all_pred, all_label):
         else:
             continue
     acc = acc / len(all_pred)
-    return acc
+    # all_label = all_label.cpu()
+    # all_pred = all_pred.cpu()
+    # p_micro = precision_score(all_label, all_pred)
+    # r_micro = recall_score(all_label, all_pred)
+    # f1 = (2*p_micro*r_micro)/(p_micro + r_micro)
+    return acc #, p_micro, r_micro, f1
