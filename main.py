@@ -4,18 +4,18 @@ import data
 import argparse
 import torch
 from torch import optim
-from model import baseModel
+from model import baseModel, AttentionModel
 from train import trainer
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # train
-    parser.add_argument('--batch_size', default=128, type=int, help='should be int')
+    parser.add_argument('--batch_size', default=16, type=int, help='should be int')
     parser.add_argument('--epochs', default=150, type=int, help='should be int')
     # model
     parser.add_argument('--embedding_dim', default=100, type=int, help='should be int')
     parser.add_argument('--hidden_dim', default=200, type=int, help='should be int')
-    parser.add_argument('--mode', default='base', type=str, help='should be str')
+    parser.add_argument('--mode', default='attention', type=str, help='should be str')
 
     args = parser.parse_args()
     pass
@@ -57,11 +57,16 @@ if __name__ == '__main__':
     # model
     baseModel = baseModel(vocab_size=vocab_size, embedding_dim=args.embedding_dim, hidden_dim=args.hidden_dim, tag2idx=tag2idx,
                           batch_size=args.batch_size, use_gpu=use_gpu, idx2word=idx2word, emb_path=emb_path)
-    optimizer = optim.Adam(baseModel.parameters(), lr=0.01)
+    attentionModel = AttentionModel(vocab_size=vocab_size, embedding_dim=args.embedding_dim, hidden_dim=args.hidden_dim, tag2idx=tag2idx,
+                          batch_size=args.batch_size, use_gpu=use_gpu, idx2word=idx2word, emb_path=emb_path)
+    optimizer = optim.Adam(baseModel.parameters(), lr=0.001)
 
     # trainer
     if args.mode == 'base':
         myTrainer = trainer(model=baseModel, train_dataloader=train_data, test_dataloader=test_data, optimizer=optimizer,
+                            epochs=args.epochs, word2idx=word2idx, tag2idx=tag2idx, idx2word=idx2word, idx2tag=idx2tag, use_gpu=use_gpu)
+    if args.mode == 'attention':
+        myTrainer = trainer(model=attentionModel, train_dataloader=train_data, test_dataloader=test_data, optimizer=optimizer,
                             epochs=args.epochs, word2idx=word2idx, tag2idx=tag2idx, idx2word=idx2word, idx2tag=idx2tag, use_gpu=use_gpu)
     else:
         pass
