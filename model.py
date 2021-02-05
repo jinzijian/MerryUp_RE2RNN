@@ -97,6 +97,7 @@ class AttentionModel(nn.Module):
         mask = torch.zeros(scores.size())
         for e_id, src_len in enumerate(lengths):
             mask[e_id, :src_len] = True  # B x L
+            mask[e_id, src_len:] = False
         mask = mask.cuda()
         mask = (mask < 1)
         scores = scores.masked_fill(mask, -1e10)
