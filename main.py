@@ -16,6 +16,7 @@ if __name__ == '__main__':
     parser.add_argument('--embedding_dim', default=100, type=int, help='should be int')
     parser.add_argument('--hidden_dim', default=200, type=int, help='should be int')
     parser.add_argument('--mode', default='attention', type=str, help='should be str')
+    parser.add_argument('--lr', default='0.001', type=float, help='should be float')
 
     args = parser.parse_args()
     pass
@@ -59,7 +60,7 @@ if __name__ == '__main__':
                           batch_size=args.batch_size, use_gpu=use_gpu, idx2word=idx2word, emb_path=emb_path)
     attentionModel = AttentionModel(vocab_size=vocab_size, embedding_dim=args.embedding_dim, hidden_dim=args.hidden_dim, tag2idx=tag2idx,
                           batch_size=args.batch_size, use_gpu=use_gpu, idx2word=idx2word, emb_path=emb_path)
-    optimizer = optim.Adam(baseModel.parameters(), lr=0.001)
+    optimizer = optim.Adam(attentionModel.parameters(), lr=args.lr)
 
     # trainer
     if args.mode == 'base':
@@ -69,7 +70,5 @@ if __name__ == '__main__':
         myTrainer = trainer(model=attentionModel, train_dataloader=train_data, test_dataloader=test_data, optimizer=optimizer,
                             epochs=args.epochs, word2idx=word2idx, tag2idx=tag2idx, idx2word=idx2word, idx2tag=idx2tag, use_gpu=use_gpu)
     else:
-        pass
-    print(len(idx2tag))
-    print(idx2tag[13])
+        print('not right mode')
     myTrainer.train()
