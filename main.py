@@ -71,5 +71,5 @@ if __name__ == '__main__':
     else:
         pass
     print(len(idx2tag))
-    print(idx2tag[1])
+    print(idx2tag[13])
     myTrainer.train()

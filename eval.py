@@ -10,7 +10,7 @@ def evaluate(all_pred, all_label):
     acc = acc / len(all_pred)
     all_label = all_label.cpu()
     all_pred = all_pred.cpu()
-    p_micro = precision_score(all_label, all_pred, average='binary', pos_label=1)
-    r_micro = recall_score(all_label, all_pred, average='binary', pos_label=1)
-    f1 = (2*p_micro*r_micro)/(p_micro + r_micro)
-    return acc, p_micro, r_micro, f1
+    # p_micro = precision_score(all_label, all_pred, average='binary', pos_label=1)
+    # r_micro = recall_score(all_label, all_pred, average='binary', pos_label=1)
+    # f1 = (2*p_micro*r_micro)/(p_micro + r_micro)
+    return acc

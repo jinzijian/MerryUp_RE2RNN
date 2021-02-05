@@ -65,18 +65,20 @@ class AttentionModel(nn.Module):
         self.query = nn.Parameter(torch.randn(self.hidden_dim), requires_grad=True)
 
     def forward(self, sentence, lengths):
-        query = self.query.unsqueeze(1).expand_as()
         embeds = self.embeds(sentence)  # B * L * D
         pack_padded_seq_input = pack_padded_sequence(embeds, lengths, batch_first=True, enforce_sorted=False)
         lstm_out, (hn, cn) = self.lstm(pack_padded_seq_input)
-        output_padded, output_lengths = pad_packed_sequence(lstm_out, batch_first=True) # B x L x H
-        scores = torch.einsum('blh, bhq -> blq', output_padded, self.query_matrix).squeeze(2)
+        output_padded, output_lengths = pad_packed_sequence(lstm_out, batch_first=True)  # B x L x H
+        B, L, H = output_padded.size()
+        query_matrix = self.query.expand(B, H)
+        query_matrix = query_matrix.unsqueeze(2)
+        scores = torch.einsum('blh, bhq -> blq', output_padded, query_matrix).squeeze(2)
         mask = torch.zeros(scores.size())
         for e_id, src_len in enumerate(lengths):
             mask[e_id, :src_len] = True  # B x L
         mask = mask.cuda()
         mask = (mask < 1)
-        # todo dropout
+        scores = self.dropout(scores)
         scores = scores.masked_fill(mask, -1e10)
         scores = F.softmax(scores, dim=-1)  # B x L
         output = torch.einsum('bl, blh -> bh', scores, output_padded)
@@ -86,9 +88,21 @@ class AttentionModel(nn.Module):
     def predict(self, sentence, lengths):
         embeds = self.embeds(sentence)  # B * L * D
         pack_padded_seq_input = pack_padded_sequence(embeds, lengths, batch_first=True, enforce_sorted=False)
-        lstm_out, (hn, cn) = self.lstm(pack_padded_seq_input)  # B * L * H
-        last_hidden = torch.cat((hn[0], hn[1]), 1)
-        lstm_out = self.hidden2tags(last_hidden)  # B * L * H
-        softmax_out = F.softmax(lstm_out, dim=1)
+        lstm_out, (hn, cn) = self.lstm(pack_padded_seq_input)
+        output_padded, output_lengths = pad_packed_sequence(lstm_out, batch_first=True)  # B x L x H
+        B, L, H = output_padded.size()
+        query_matrix = self.query.expand(B, H)
+        query_matrix = query_matrix.unsqueeze(2)
+        scores = torch.einsum('blh, bhq -> blq', output_padded, query_matrix).squeeze(2)
+        mask = torch.zeros(scores.size())
+        for e_id, src_len in enumerate(lengths):
+            mask[e_id, :src_len] = True  # B x L
+        mask = mask.cuda()
+        mask = (mask < 1)
+        scores = scores.masked_fill(mask, -1e10)
+        scores = F.softmax(scores, dim=-1)  # B x L
+        output = torch.einsum('bl, blh -> bh', scores, output_padded)
+        output = self.hidden2tags(output)
+        softmax_out = F.softmax(output, dim=1)
         pred_label = torch.argmax(softmax_out, dim=1)
         return pred_label  # B
